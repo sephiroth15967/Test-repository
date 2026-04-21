@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<!-- saved from url=(0055)file:///D:/Descargas/deepseek_html_20260421_63bdaf.html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico Nauta Hogar · PAU Cuba</title>
+    <style>
+        body { background: #0b1a1f; color: #e6f7ff; font-family: 'Segoe UI', system-ui, sans-serif; padding: 16px; max-width: 600px; margin: 0 auto; }
+        h1 { color: #ffb347; font-size: 1.8rem; margin-bottom: 0; }
+        .subtitulo { color: #8ecae6; margin-top: 5px; border-left: 4px solid #219ebc; padding-left: 12px; }
+        .router-card { background: #1c3a45; border-radius: 20px; padding: 18px; margin: 20px 0; border: 1px solid #2a5f73; }
+        .router-name { font-weight: bold; font-size: 1.3rem; margin-bottom: 10px; color: #ffb347; }
+        .led-diagnostico { display: flex; align-items: center; margin: 15px 0; background: #0e2a33; padding: 10px; border-radius: 14px; }
+        .led { width: 24px; height: 24px; border-radius: 50%; margin-right: 16px; border: 2px solid #aaa; }
+        .led-verde { background: #2dc937; box-shadow: 0 0 12px #2dc937; }
+        .led-rojo { background: #cc1e1e; box-shadow: 0 0 12px #cc1e1e; }
+        .led-apagado { background: #3a4a4f; }
+        .led-parpadeo { background: #e6b800; box-shadow: 0 0 12px #e6b800; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+        .solucion { background: #0f2e3b; padding: 12px; border-radius: 12px; margin-top: 15px; border-left: 6px solid #2a9d8f; }
+        .credenciales { font-family: monospace; background: #031014; padding: 10px; border-radius: 8px; margin: 10px 0; }
+        .boton-copiar { background: #219ebc; border: none; color: white; padding: 8px 14px; border-radius: 40px; font-weight: bold; }
+        .nota { color: #8ecae6; font-size: 0.9rem; margin-top: 20px; }
+        hr { border: 1px dashed #2a5f73; }
+    </style>
+</head>
+<body>
+    <h1>📡 Diagnóstico de Luces Nauta</h1>
+    <div class="subtitulo">PAU · Producto de Alta Utilidad (Offline)</div>
+    <p>Mira las luces de tu router Nauta Hogar y compara aquí. <strong>Funciona sin internet.</strong></p>
+
+    <!-- TP-LINK -->
+    <div class="router-card">
+        <div class="router-name">🔷 TP-Link (TD-W8961N / TD-W8951ND)</div>
+        <div class="led-diagnostico">
+            <div class="led led-verde"></div> <span><strong>Power fijo verde + Internet rojo/apagado</strong> → Problema de ETECSA o línea. No toques nada. Espera.</span>
+        </div>
+        <div class="led-diagnostico">
+            <div class="led led-verde"></div> <span><strong>Power verde + Internet parpadea verde rápido</strong> → Autenticando. Dale 3 minutos.</span>
+        </div>
+        <div class="led-diagnostico">
+            <div class="led led-apagado"></div> <span><strong>Luz WiFi apagada</strong> → Presiona el botón WLAN/WiFi del router.</span>
+        </div>
+        <div class="solucion">
+            🔑 <strong>Acceso al panel:</strong><br>
+            IP: <code>192.168.1.1</code><br>
+            Usuario: <code>admin</code> / Clave: <code>admin</code>
+        </div>
+    </div>
+
+    <!-- HUAWEI -->
+    <div class="router-card">
+        <div class="router-name">🔶 Huawei (HG531 / HG532e)</div>
+        <div class="led-diagnostico">
+            <div class="led led-rojo"></div> <span><strong>Luz LOS roja fija o parpadeante</strong> → Fibra cortada o problema de ETECSA. Reportar.</span>
+        </div>
+        <div class="led-diagnostico">
+            <div class="led led-parpadeo"></div> <span><strong>Luz PON parpadea verde lento</strong> → Sincronizando. Espera 2-5 min.</span>
+        </div>
+        <div class="led-diagnostico">
+            <div class="led led-verde"></div> <span><strong>Todas las luces verdes fijas pero sin internet</strong> → Reinicia el router desde el botón trasero.</span>
+        </div>
+        <div class="solucion">
+            🔑 <strong>Acceso al panel:</strong><br>
+            IP: <code>192.168.100.1</code> (o <code>192.168.1.1</code>)<br>
+            Usuario: <code>telecomadmin</code> / Clave: <code>admintelecom</code><br>
+            Usuario alternativo: <code>root</code> / <code>admin</code>
+        </div>
+    </div>
+
+    <!-- ZTE -->
+    <div class="router-card">
+        <div class="router-name">🔹 ZTE (F660 / F680)</div>
+        <div class="led-diagnostico">
+            <div class="led led-rojo"></div> <span><strong>LOS rojo</strong> → Sin señal de fibra. Contacta a ETECSA.</span>
+        </div>
+        <div class="led-diagnostico">
+            <div class="led led-parpadeo"></div> <span><strong>PON parpadea</strong> → Intentando conectar. No interrumpas.</span>
+        </div>
+        <div class="solucion">
+            🔑 <strong>Acceso al panel:</strong><br>
+            IP: <code>192.168.1.1</code><br>
+            Usuario: <code>user</code> / Clave: <code>user</code> (o <code>admin</code>/<code>admin</code>)
+        </div>
+    </div>
+
+    <hr>
+    <div class="nota">
+        ⚡ <strong>Recomendación PAU:</strong> Si ninguna luz responde, desconecta el router 10 segundos y vuelve a conectar. Si tras 10 minutos no navega, reporta al 118 con el número de serie.<br><br>
+        📌 Este documento es standalone. Guárdalo en el móvil, no consume datos.
+    </div>
+    <p style="text-align:center; margin-top:25px;">🛠️ PAU Cuba · v1.0 · paucuba.github.io</p>
+
+</body></html>
