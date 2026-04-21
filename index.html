@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>PAU Cuba · Premium</title>
     
-    <!-- 1. SDK de InstantDB (Cliente para el navegador) -->
+    <!-- SDK de InstantDB -->
     <script src="https://unpkg.com/@instantdb/core@latest/dist/standalone.js"></script>
 
     <style>
-        /* Tus mismos estilos CSS (ahorro de batería, modo oscuro, etc.) */
+        /* Tus mismos estilos (modo oscuro, ahorro de batería) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background-color: #0b0e14; color: #e3e9f0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.5; padding: 16px 12px 32px; max-width: 800px; margin: 0 auto; }
         h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; color: #ffffff; border-left: 5px solid #f59e0b; padding-left: 16px; }
@@ -23,49 +23,54 @@
         .pau-solucion { background: #1e293b; padding: 12px 16px; border-radius: 14px; margin: 14px 0 18px; border-left: 4px solid #10b981; font-weight: 500; }
         .costo { display: inline-block; background: #2d1f1a; color: #fca5a5; padding: 6px 14px; border-radius: 40px; font-size: 0.9rem; font-weight: 600; margin-bottom: 18px; border: 1px solid #b91c1c40; }
         .btn-group { display: flex; flex-wrap: wrap; gap: 12px; }
-        .btn { background: #2563eb; color: white; padding: 14px 24px; border-radius: 60px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: none; font-size: 1.1rem; flex: 1 1 180px; box-shadow: 0 6px 0 #1e3a8a; transition: all 0.08s; text-align: center; border: 1px solid #3b82f6; }
+        .btn { background: #2563eb; color: white; padding: 14px 24px; border-radius: 60px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: none; font-size: 1.1rem; flex: 1 1 180px; box-shadow: 0 6px 0 #1e3a8a; transition: all 0.08s; text-align: center; border: 1px solid #3b82f6; cursor: pointer; }
         .btn:hover { background: #3b82f6; transform: translateY(-2px); box-shadow: 0 8px 0 #1e3a8a; }
         .btn:active { transform: translateY(2px); box-shadow: 0 4px 0 #1e3a8a; }
         .btn-sec { background: #374151; box-shadow: 0 6px 0 #1f2937; border: 1px solid #4b5563; }
         .footer { margin-top: 40px; text-align: center; color: #6a7a8e; font-size: 0.8rem; border-top: 1px dashed #2c3a4e; padding-top: 24px; }
         .nota-pdf { background: #0f1a1f; border-radius: 12px; padding: 12px; margin-top: 15px; font-size: 0.9rem; border: 1px dashed #fbbf24; }
-        /* Estilos para los formularios de pago y admin */
-        #payment-form-area, #admin-panel { background: #1a2330; border-radius: 16px; padding: 20px; margin: 20px 0; border: 1px solid #fbbf24; }
+        /* Formularios y modales */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: #1a2330; border-radius: 24px; padding: 24px; max-width: 400px; width: 90%; border: 1px solid #fbbf24; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
         .form-group input, .form-group textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #2c3a4e; background: #0b0e14; color: #e3e9f0; }
         .hidden { display: none; }
+        #auth-panel { margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <h1>🧰 PAU Cuba (Premium)</h1>
-    <div class="subtitulo">Accede a soluciones exclusivas</div>
+    <h1>🧰 PAU Cuba</h1>
+    <div class="subtitulo">Productos de Alta Utilidad · Catálogo público</div>
 
-    <!-- Panel de Autenticación -->
+    <!-- Panel de Autenticación (Magic Link) -->
     <div id="auth-panel" class="aviso">
-        <p>🔐 <strong>Inicia sesión para comprar y descargar:</strong></p>
-        <button id="google-signin-btn" class="btn" style="margin-top: 10px;">Iniciar sesión con Google</button>
-        <div id="user-info-display" class="hidden">
-            <p>✅ Bienvenido, <span id="user-name-display"></span>.</p>
-            <button id="google-signout-btn" class="btn btn-sec" style="margin-top: 10px;">Cerrar sesión</button>
+        <div id="logged-out-view">
+            <p>🔐 <strong>Inicia sesión para descargar tus compras:</strong></p>
+            <button id="show-login-modal-btn" class="btn">Iniciar sesión con Email</button>
+        </div>
+        <div id="logged-in-view" class="hidden">
+            <p>✅ Sesión iniciada como <span id="user-email-display"></span></p>
+            <button id="logout-btn" class="btn btn-sec">Cerrar sesión</button>
+            <p id="admin-badge" class="hidden" style="color: #fbbf24; margin-top: 8px;">🛡️ Modo Administrador</p>
         </div>
     </div>
 
-    <!-- Panel de Administración (Solo visible para ti) -->
+    <!-- Panel de Administración (Solo admin) -->
     <div id="admin-panel" class="hidden">
         <h3>🛡️ Panel de Administración</h3>
         <p>Pagos pendientes de verificación:</p>
         <div id="pending-payments-list">Cargando...</div>
     </div>
 
-    <!-- Área de Productos (PAU Cards) -->
+    <!-- Catálogo de Productos (Visible siempre) -->
     <div id="products-container">Cargando productos...</div>
 
     <!-- Formulario de Pago (Se muestra al hacer clic en "Comprar") -->
     <div id="payment-form-area" class="hidden">
         <h3>💳 Finalizar Compra con Transfermóvil</h3>
-        <p id="payment-instructions">Para completar tu compra, realiza una transferencia por Transfermóvil al siguiente número y luego completa el formulario:</p>
+        <p>Para completar tu compra, realiza una transferencia por Transfermóvil al siguiente número y luego completa el formulario:</p>
         <div class="aviso" style="background: #2d1f1a; border: 1px solid #fca5a5;">
             <p><strong>📱 Número de Transfermóvil:</strong> <span style="font-size: 1.4rem;">+53 5XXXXXXX</span></p>
             <p><strong>💰 Monto a pagar:</strong> <span id="payment-amount-display">$0.00</span></p>
@@ -81,55 +86,156 @@
         <p class="nota-pdf">Tu acceso se habilitará en cuanto verifiquemos el pago (máximo 24h).</p>
     </div>
 
-    <div class="footer">
-        ⚡ PAU Cuba · Productos diseñados para resolver, no para enseñar.<br>
-        Comparte con quien lo necesite. El conocimiento útil debe circular.
+    <!-- Modal de Login (Magic Link) -->
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Iniciar sesión con Magic Link</h3>
+            <div id="magic-link-request-view">
+                <p>Ingresa tu correo electrónico y te enviaremos un enlace mágico.</p>
+                <div class="form-group">
+                    <label for="email-input">Correo electrónico:</label>
+                    <input type="email" id="email-input" placeholder="tu@correo.com" />
+                </div>
+                <button id="send-magic-link-btn" class="btn">Enviar enlace mágico</button>
+                <button id="close-modal-btn" class="btn btn-sec" style="margin-top: 10px;">Cancelar</button>
+            </div>
+            <div id="magic-link-verify-view" class="hidden">
+                <p>Revisa tu bandeja de entrada. Introduce el código que recibiste:</p>
+                <div class="form-group">
+                    <label for="code-input">Código de verificación:</label>
+                    <input type="text" id="code-input" placeholder="123456" />
+                </div>
+                <button id="verify-code-btn" class="btn">Verificar código</button>
+                <button id="back-to-email-btn" class="btn btn-sec" style="margin-top: 10px;">← Volver</button>
+            </div>
+        </div>
     </div>
 
-    <!-- 2. Lógica de la Aplicación (El Cerebro) -->
+    <div class="footer">
+        ⚡ PAU Cuba · Productos diseñados para resolver, no para enseñar.<br>
+        Catálogo público · Descarga solo para clientes verificados.
+    </div>
+
     <script type="module">
-        // ¡¡¡ CONFIGURACIÓN INICIAL !!!
-        // Reemplaza esto con tus datos reales de InstantDB
-        const APP_ID = '3e267f71-c202-4744-b644-66354923e339';
-        // ⚠️ NUNCA expongas el ADMIN_TOKEN en código de frontend.
-        // Para este ejemplo, usaremos un enfoque de "funciones de administrador"
-        // que requieren autenticación de usuario con rol 'admin'.
+        // ==================== CONFIGURACIÓN ====================
+        const APP_ID = '3e267f71-c202-4744-b644-66354923e339'; // ← Reemplazar
+        const ADMIN_EMAIL = 'yoandrypardo@gmail.com'; // ← Reemplazar
         
-        import { init } from '@instantdb/core';
+        import { init, id } from '@instantdb/core';
 
         // 1. Inicializar InstantDB
         const db = init({ appId: APP_ID });
         const auth = db.auth;
 
-        // 2. Esquema y Datos de Ejemplo (Se sube una sola vez por el admin)
-        const schema = {
-            products: { 
-                "id": { type: 'string' },
-                "name": { type: 'string' },
-                "description": { type: 'string' },
-                "price": { type: 'number' },
-                "file_url": { type: 'string' }
-            },
-            purchases: {
-                "id": { type: 'string' },
-                "user_id": { type: 'string' },
-                "product_id": { type: 'string' },
-                "purchased_at": { type: 'date' }
-            },
-            payment_verifications: {
-                "id": { type: 'string' },
-                "user_id": { type: 'string' },
-                "product_id": { type: 'string' },
-                "comprobante": { type: 'string' },
-                "status": { type: 'string', default: 'pending' }, // 'pending', 'approved', 'rejected'
-                "created_at": { type: 'date' }
-            }
-        };
+        // 2. Estado global
+        let currentUser = null;
+        let isAdmin = false;
+        let selectedProduct = null;
+        let pendingEmail = '';
 
-        // 3. Función para poblar la base de datos con los PAU (Solo admin)
-        async function seedProducts() {
+        // 3. Elementos DOM
+        const loggedOutView = document.getElementById('logged-out-view');
+        const loggedInView = document.getElementById('logged-in-view');
+        const userEmailDisplay = document.getElementById('user-email-display');
+        const adminBadge = document.getElementById('admin-badge');
+        const logoutBtn = document.getElementById('logout-btn');
+        const productsContainer = document.getElementById('products-container');
+        const paymentFormArea = document.getElementById('payment-form-area');
+        const adminPanel = document.getElementById('admin-panel');
+        const loginModal = document.getElementById('login-modal');
+        const magicLinkRequestView = document.getElementById('magic-link-request-view');
+        const magicLinkVerifyView = document.getElementById('magic-link-verify-view');
+        const emailInput = document.getElementById('email-input');
+        const codeInput = document.getElementById('code-input');
+        const showLoginModalBtn = document.getElementById('show-login-modal-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const sendMagicLinkBtn = document.getElementById('send-magic-link-btn');
+        const verifyCodeBtn = document.getElementById('verify-code-btn');
+        const backToEmailBtn = document.getElementById('back-to-email-btn');
+
+        // 4. Funciones de UI para modales
+        function showModal() { loginModal.classList.remove('hidden'); }
+        function hideModal() { loginModal.classList.add('hidden'); resetModalViews(); }
+        function resetModalViews() {
+            magicLinkRequestView.classList.remove('hidden');
+            magicLinkVerifyView.classList.add('hidden');
+            emailInput.value = '';
+            codeInput.value = '';
+        }
+
+        showLoginModalBtn.addEventListener('click', showModal);
+        closeModalBtn.addEventListener('click', hideModal);
+        backToEmailBtn.addEventListener('click', () => {
+            magicLinkRequestView.classList.remove('hidden');
+            magicLinkVerifyView.classList.add('hidden');
+        });
+
+        // 5. Autenticación con Magic Link
+        sendMagicLinkBtn.addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+            if (!email) { alert('Ingresa un correo válido'); return; }
+            try {
+                await auth.sendMagicCode({ email });
+                pendingEmail = email;
+                magicLinkRequestView.classList.add('hidden');
+                magicLinkVerifyView.classList.remove('hidden');
+                alert('Código enviado. Revisa tu correo (y la carpeta de spam).');
+            } catch (error) {
+                console.error(error);
+                alert('Error al enviar el código: ' + error.message);
+            }
+        });
+
+        verifyCodeBtn.addEventListener('click', async () => {
+            const code = codeInput.value.trim();
+            if (!code) { alert('Introduce el código'); return; }
+            try {
+                await auth.verifyMagicCode({ email: pendingEmail, code });
+                hideModal();
+                // El estado de autenticación se actualizará vía onAuthStateChange
+            } catch (error) {
+                console.error(error);
+                alert('Código inválido o expirado.');
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            await auth.signOut();
+        });
+
+        // 6. Observador de estado de autenticación
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (user) {
+                loggedOutView.classList.add('hidden');
+                loggedInView.classList.remove('hidden');
+                userEmailDisplay.textContent = user.email;
+                isAdmin = (user.email === ADMIN_EMAIL);
+                if (isAdmin) {
+                    adminBadge.classList.remove('hidden');
+                    adminPanel.classList.remove('hidden');
+                    loadPendingPayments();
+                } else {
+                    adminBadge.classList.add('hidden');
+                    adminPanel.classList.add('hidden');
+                }
+                // Refrescar productos para mostrar descargas si ya compró
+                await ensureProductsExist();
+                renderProducts();
+            } else {
+                loggedOutView.classList.remove('hidden');
+                loggedInView.classList.add('hidden');
+                adminPanel.classList.add('hidden');
+                // Aún mostramos productos pero sin opción de descarga (solo comprar)
+                await ensureProductsExist();
+                renderProducts();
+            }
+        });
+
+        // 7. Asegurar que los productos existen en la DB
+        async function ensureProductsExist() {
             const { data } = await db.query({ products: {} });
-            if (data.products.length === 0) {
+            if (!data.products || data.products.length === 0) {
                 await db.transact([
                     db.tx.products[id()].update({
                         name: 'Santuario de la Clave Mágica',
@@ -153,56 +259,7 @@
             }
         }
 
-        // 4. Estado de la UI
-        let currentUser = null;
-        let isAdmin = false;
-        let selectedProduct = null;
-
-        // 5. Elementos del DOM
-        const authPanel = document.getElementById('auth-panel');
-        const userInfoDisplay = document.getElementById('user-info-display');
-        const userNameDisplay = document.getElementById('user-name-display');
-        const signinBtn = document.getElementById('google-signin-btn');
-        const signoutBtn = document.getElementById('google-signout-btn');
-        const productsContainer = document.getElementById('products-container');
-        const paymentFormArea = document.getElementById('payment-form-area');
-        const adminPanel = document.getElementById('admin-panel');
-
-        // 6. Autenticación
-        signinBtn.addEventListener('click', async () => {
-            try {
-                await auth.signInWithPopup('google');
-            } catch (error) {
-                console.error('Error de login:', error);
-                alert('Error al iniciar sesión. Revisa la consola.');
-            }
-        });
-
-        signoutBtn.addEventListener('click', async () => {
-            await auth.signOut();
-        });
-
-        auth.onAuthStateChanged(async (user) => {
-            currentUser = user;
-            if (user) {
-                userInfoDisplay.classList.remove('hidden');
-                userNameDisplay.textContent = user.displayName;
-                // Verificar si es admin (puedes definir una lógica más robusta)
-                isAdmin = user.email === 'yoandrypardo@gmail.com';
-                if (isAdmin) {
-                    adminPanel.classList.remove('hidden');
-                    loadPendingPayments();
-                }
-                await seedProducts(); // Asegurar que los productos existen
-                renderProducts();
-            } else {
-                userInfoDisplay.classList.add('hidden');
-                adminPanel.classList.add('hidden');
-                productsContainer.innerHTML = '<p>Inicia sesión para ver los productos.</p>';
-            }
-        });
-
-        // 7. Renderizar Productos
+        // 8. Renderizar catálogo (público)
         async function renderProducts() {
             const { data } = await db.query({ products: {} });
             const products = data.products;
@@ -213,10 +270,18 @@
 
             let html = '';
             for (const product of products) {
-                const hasPurchased = await checkUserPurchase(currentUser.id, product.id);
+                // Si el usuario está logueado, verificamos si ya compró
+                let hasPurchased = false;
+                if (currentUser) {
+                    const { data: purchaseData } = await db.query({
+                        purchases: { $: { where: { user_id: currentUser.id, product_id: product.id } } }
+                    });
+                    hasPurchased = purchaseData.purchases.length > 0;
+                }
+
                 html += `
                     <div class="pau-card">
-                        <div class="pau-icon">🔐📄</div>
+                        <div class="pau-icon">📦</div>
                         <div class="pau-title">${product.name}</div>
                         <div class="pau-solucion">${product.description}</div>
                         <div class="costo">💸 Precio: $${product.price} USD</div>
@@ -231,9 +296,14 @@
             }
             productsContainer.innerHTML = html;
 
-            // Agregar event listeners a los botones "Comprar"
+            // Event listeners para botones Comprar
             document.querySelectorAll('.btn-comprar').forEach(btn => {
                 btn.addEventListener('click', (e) => {
+                    if (!currentUser) {
+                        alert('Debes iniciar sesión para comprar.');
+                        showModal();
+                        return;
+                    }
                     selectedProduct = {
                         id: e.target.dataset.productId,
                         name: e.target.dataset.productName,
@@ -244,14 +314,7 @@
             });
         }
 
-        async function checkUserPurchase(userId, productId) {
-            const { data } = await db.query({
-                purchases: { $: { where: { user_id: userId, product_id: productId } } }
-            });
-            return data.purchases.length > 0;
-        }
-
-        // 8. Lógica de Pago y Formulario
+        // 9. Lógica de pago
         function showPaymentForm() {
             if (!selectedProduct) return;
             document.getElementById('payment-amount-display').textContent = `$${selectedProduct.price}`;
@@ -292,7 +355,7 @@
             }
         });
 
-        // 9. Panel de Administración (Verificación de Pagos)
+        // 10. Panel de Administración
         async function loadPendingPayments() {
             const { data } = await db.query({
                 payment_verifications: { $: { where: { status: 'pending' } } }
@@ -310,15 +373,15 @@
                     <strong>Producto:</strong> ${v.product_id}<br>
                     <strong>Comprobante:</strong> ${v.comprobante}<br>
                     <strong>Fecha:</strong> ${new Date(v.created_at).toLocaleString()}<br>
-                    <button class="btn btn-sec" data-id="${v.id}" data-user="${v.user_id}" data-product="${v.product_id}" onclick="approvePayment('${v.id}', '${v.user_id}', '${v.product_id}')">✅ Aprobar</button>
-                    <button class="btn btn-sec" data-id="${v.id}" onclick="rejectPayment('${v.id}')">❌ Rechazar</button>
+                    <button class="btn btn-sec" data-id="${v.id}" data-user="${v.user_id}" data-product="${v.product_id}" onclick="window.approvePayment('${v.id}', '${v.user_id}', '${v.product_id}')">✅ Aprobar</button>
+                    <button class="btn btn-sec" data-id="${v.id}" onclick="window.rejectPayment('${v.id}')">❌ Rechazar</button>
                 </li>`;
             }
             html += '</ul>';
             document.getElementById('pending-payments-list').innerHTML = html;
         }
 
-        // Funciones globales para los botones del panel de admin
+        // Funciones globales para admin
         window.approvePayment = async (verificationId, userId, productId) => {
             try {
                 await db.transact([
@@ -332,8 +395,8 @@
                 alert('Pago aprobado. El usuario ya puede descargar su PAU.');
                 loadPendingPayments();
             } catch (error) {
-                console.error('Error al aprobar pago:', error);
-                alert('Error al aprobar. Revisa la consola.');
+                console.error(error);
+                alert('Error al aprobar.');
             }
         };
 
@@ -346,9 +409,10 @@
             }
         };
 
-        // Inicializar carga de productos al cargar la página
-        window.addEventListener('load', () => {
-            if (currentUser) renderProducts();
+        // Inicializar
+        window.addEventListener('load', async () => {
+            await ensureProductsExist();
+            renderProducts();
         });
 
     </script>
