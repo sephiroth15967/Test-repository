@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>PAU Cuba · Premium</title>
+    
+    <!-- 1. SDK de InstantDB (Cliente para el navegador) -->
+    <script src="https://unpkg.com/@instantdb/core@latest/dist/standalone.js"></script>
+
+    <style>
+        /* Tus mismos estilos CSS (ahorro de batería, modo oscuro, etc.) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: #0b0e14; color: #e3e9f0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.5; padding: 16px 12px 32px; max-width: 800px; margin: 0 auto; }
+        h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; color: #ffffff; border-left: 5px solid #f59e0b; padding-left: 16px; }
+        .subtitulo { font-size: 1rem; color: #9ca8b8; margin-bottom: 32px; padding-left: 21px; }
+        .aviso { background: #1a2330; border-radius: 16px; padding: 16px 18px; margin-bottom: 28px; border: 1px solid #2c3a4e; font-size: 0.95rem; }
+        .aviso strong { color: #fbbf24; }
+        .pau-card { background: #111720; border-radius: 24px; padding: 24px 20px; margin-bottom: 24px; border: 1px solid #2a3440; box-shadow: 0 10px 20px -8px rgba(0,0,0,0.6); }
+        .pau-icon { font-size: 2.4rem; margin-bottom: 10px; }
+        .pau-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; color: #f3f9ff; }
+        .pau-problema { font-weight: 600; color: #f87171; margin: 12px 0 6px; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.85rem; }
+        .pau-solucion { background: #1e293b; padding: 12px 16px; border-radius: 14px; margin: 14px 0 18px; border-left: 4px solid #10b981; font-weight: 500; }
+        .costo { display: inline-block; background: #2d1f1a; color: #fca5a5; padding: 6px 14px; border-radius: 40px; font-size: 0.9rem; font-weight: 600; margin-bottom: 18px; border: 1px solid #b91c1c40; }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 12px; }
+        .btn { background: #2563eb; color: white; padding: 14px 24px; border-radius: 60px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; border: none; font-size: 1.1rem; flex: 1 1 180px; box-shadow: 0 6px 0 #1e3a8a; transition: all 0.08s; text-align: center; border: 1px solid #3b82f6; }
+        .btn:hover { background: #3b82f6; transform: translateY(-2px); box-shadow: 0 8px 0 #1e3a8a; }
+        .btn:active { transform: translateY(2px); box-shadow: 0 4px 0 #1e3a8a; }
+        .btn-sec { background: #374151; box-shadow: 0 6px 0 #1f2937; border: 1px solid #4b5563; }
+        .footer { margin-top: 40px; text-align: center; color: #6a7a8e; font-size: 0.8rem; border-top: 1px dashed #2c3a4e; padding-top: 24px; }
+        .nota-pdf { background: #0f1a1f; border-radius: 12px; padding: 12px; margin-top: 15px; font-size: 0.9rem; border: 1px dashed #fbbf24; }
+        /* Estilos para los formularios de pago y admin */
+        #payment-form-area, #admin-panel { background: #1a2330; border-radius: 16px; padding: 20px; margin: 20px 0; border: 1px solid #fbbf24; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #2c3a4e; background: #0b0e14; color: #e3e9f0; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <h1>🧰 PAU Cuba (Premium)</h1>
+    <div class="subtitulo">Accede a soluciones exclusivas</div>
+
+    <!-- Panel de Autenticación -->
+    <div id="auth-panel" class="aviso">
+        <p>🔐 <strong>Inicia sesión para comprar y descargar:</strong></p>
+        <button id="google-signin-btn" class="btn" style="margin-top: 10px;">Iniciar sesión con Google</button>
+        <div id="user-info-display" class="hidden">
+            <p>✅ Bienvenido, <span id="user-name-display"></span>.</p>
+            <button id="google-signout-btn" class="btn btn-sec" style="margin-top: 10px;">Cerrar sesión</button>
+        </div>
+    </div>
+
+    <!-- Panel de Administración (Solo visible para ti) -->
+    <div id="admin-panel" class="hidden">
+        <h3>🛡️ Panel de Administración</h3>
+        <p>Pagos pendientes de verificación:</p>
+        <div id="pending-payments-list">Cargando...</div>
+    </div>
+
+    <!-- Área de Productos (PAU Cards) -->
+    <div id="products-container">Cargando productos...</div>
+
+    <!-- Formulario de Pago (Se muestra al hacer clic en "Comprar") -->
+    <div id="payment-form-area" class="hidden">
+        <h3>💳 Finalizar Compra con Transfermóvil</h3>
+        <p id="payment-instructions">Para completar tu compra, realiza una transferencia por Transfermóvil al siguiente número y luego completa el formulario:</p>
+        <div class="aviso" style="background: #2d1f1a; border: 1px solid #fca5a5;">
+            <p><strong>📱 Número de Transfermóvil:</strong> <span style="font-size: 1.4rem;">+53 5XXXXXXX</span></p>
+            <p><strong>💰 Monto a pagar:</strong> <span id="payment-amount-display">$0.00</span></p>
+            <p><strong>📝 Concepto:</strong> <span id="payment-concept-display">PAU Seleccionado</span></p>
+        </div>
+        <p>Una vez hecha la transferencia, pega el número de confirmación o sube una captura de pantalla.</p>
+        <div class="form-group">
+            <label for="comprobante">Número de Confirmación / Enlace a Captura:</label>
+            <textarea id="comprobante" rows="3" placeholder="Ej: 20240521-1234567890 o https://..."></textarea>
+        </div>
+        <button id="submit-payment-btn" class="btn">Enviar Comprobante para Verificación</button>
+        <button id="cancel-payment-btn" class="btn btn-sec">Cancelar</button>
+        <p class="nota-pdf">Tu acceso se habilitará en cuanto verifiquemos el pago (máximo 24h).</p>
+    </div>
+
+    <div class="footer">
+        ⚡ PAU Cuba · Productos diseñados para resolver, no para enseñar.<br>
+        Comparte con quien lo necesite. El conocimiento útil debe circular.
+    </div>
+
+    <!-- 2. Lógica de la Aplicación (El Cerebro) -->
+    <script type="module">
+        // ¡¡¡ CONFIGURACIÓN INICIAL !!!
+        // Reemplaza esto con tus datos reales de InstantDB
+        const APP_ID = '3e267f71-c202-4744-b644-66354923e339';
+        // ⚠️ NUNCA expongas el ADMIN_TOKEN en código de frontend.
+        // Para este ejemplo, usaremos un enfoque de "funciones de administrador"
+        // que requieren autenticación de usuario con rol 'admin'.
+        
+        import { init } from '@instantdb/core';
+
+        // 1. Inicializar InstantDB
+        const db = init({ appId: APP_ID });
+        const auth = db.auth;
+
+        // 2. Esquema y Datos de Ejemplo (Se sube una sola vez por el admin)
+        const schema = {
+            products: { 
+                "id": { type: 'string' },
+                "name": { type: 'string' },
+                "description": { type: 'string' },
+                "price": { type: 'number' },
+                "file_url": { type: 'string' }
+            },
+            purchases: {
+                "id": { type: 'string' },
+                "user_id": { type: 'string' },
+                "product_id": { type: 'string' },
+                "purchased_at": { type: 'date' }
+            },
+            payment_verifications: {
+                "id": { type: 'string' },
+                "user_id": { type: 'string' },
+                "product_id": { type: 'string' },
+                "comprobante": { type: 'string' },
+                "status": { type: 'string', default: 'pending' }, // 'pending', 'approved', 'rejected'
+                "created_at": { type: 'date' }
+            }
+        };
+
+        // 3. Función para poblar la base de datos con los PAU (Solo admin)
+        async function seedProducts() {
+            const { data } = await db.query({ products: {} });
+            if (data.products.length === 0) {
+                await db.transact([
+                    db.tx.products[id()].update({
+                        name: 'Santuario de la Clave Mágica',
+                        description: 'PDF con matriz de coordenadas y nemotecnia.',
+                        price: 5.00,
+                        file_url: 'PAU_ClaveMagica_Cuba.pdf'
+                    }),
+                    db.tx.products[id()].update({
+                        name: 'Diagnóstico de Luces Nauta',
+                        description: 'HTML offline para diagnosticar tu router.',
+                        price: 3.50,
+                        file_url: 'PAU_NautaHogar_Cuba.html'
+                    }),
+                    db.tx.products[id()].update({
+                        name: 'Detector de Paquete Chileno',
+                        description: 'PDF de bolsillo contra phishing.',
+                        price: 2.99,
+                        file_url: 'PAU_DetectorPhishing_Cuba.pdf'
+                    })
+                ]);
+            }
+        }
+
+        // 4. Estado de la UI
+        let currentUser = null;
+        let isAdmin = false;
+        let selectedProduct = null;
+
+        // 5. Elementos del DOM
+        const authPanel = document.getElementById('auth-panel');
+        const userInfoDisplay = document.getElementById('user-info-display');
+        const userNameDisplay = document.getElementById('user-name-display');
+        const signinBtn = document.getElementById('google-signin-btn');
+        const signoutBtn = document.getElementById('google-signout-btn');
+        const productsContainer = document.getElementById('products-container');
+        const paymentFormArea = document.getElementById('payment-form-area');
+        const adminPanel = document.getElementById('admin-panel');
+
+        // 6. Autenticación
+        signinBtn.addEventListener('click', async () => {
+            try {
+                await auth.signInWithPopup('google');
+            } catch (error) {
+                console.error('Error de login:', error);
+                alert('Error al iniciar sesión. Revisa la consola.');
+            }
+        });
+
+        signoutBtn.addEventListener('click', async () => {
+            await auth.signOut();
+        });
+
+        auth.onAuthStateChanged(async (user) => {
+            currentUser = user;
+            if (user) {
+                userInfoDisplay.classList.remove('hidden');
+                userNameDisplay.textContent = user.displayName;
+                // Verificar si es admin (puedes definir una lógica más robusta)
+                isAdmin = user.email === 'yoandrypardo@gmail.com';
+                if (isAdmin) {
+                    adminPanel.classList.remove('hidden');
+                    loadPendingPayments();
+                }
+                await seedProducts(); // Asegurar que los productos existen
+                renderProducts();
+            } else {
+                userInfoDisplay.classList.add('hidden');
+                adminPanel.classList.add('hidden');
+                productsContainer.innerHTML = '<p>Inicia sesión para ver los productos.</p>';
+            }
+        });
+
+        // 7. Renderizar Productos
+        async function renderProducts() {
+            const { data } = await db.query({ products: {} });
+            const products = data.products;
+            if (!products || products.length === 0) {
+                productsContainer.innerHTML = '<p>No hay productos disponibles.</p>';
+                return;
+            }
+
+            let html = '';
+            for (const product of products) {
+                const hasPurchased = await checkUserPurchase(currentUser.id, product.id);
+                html += `
+                    <div class="pau-card">
+                        <div class="pau-icon">🔐📄</div>
+                        <div class="pau-title">${product.name}</div>
+                        <div class="pau-solucion">${product.description}</div>
+                        <div class="costo">💸 Precio: $${product.price} USD</div>
+                        <div class="btn-group">
+                            ${hasPurchased 
+                                ? `<a href="${product.file_url}" class="btn" download>⬇️ DESCARGAR</a>`
+                                : `<button class="btn btn-comprar" data-product-id="${product.id}" data-product-name="${product.name}" data-product-price="${product.price}">💳 COMPRAR</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }
+            productsContainer.innerHTML = html;
+
+            // Agregar event listeners a los botones "Comprar"
+            document.querySelectorAll('.btn-comprar').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    selectedProduct = {
+                        id: e.target.dataset.productId,
+                        name: e.target.dataset.productName,
+                        price: e.target.dataset.productPrice
+                    };
+                    showPaymentForm();
+                });
+            });
+        }
+
+        async function checkUserPurchase(userId, productId) {
+            const { data } = await db.query({
+                purchases: { $: { where: { user_id: userId, product_id: productId } } }
+            });
+            return data.purchases.length > 0;
+        }
+
+        // 8. Lógica de Pago y Formulario
+        function showPaymentForm() {
+            if (!selectedProduct) return;
+            document.getElementById('payment-amount-display').textContent = `$${selectedProduct.price}`;
+            document.getElementById('payment-concept-display').textContent = `Compra de ${selectedProduct.name}`;
+            paymentFormArea.classList.remove('hidden');
+        }
+
+        document.getElementById('cancel-payment-btn').addEventListener('click', () => {
+            paymentFormArea.classList.add('hidden');
+            selectedProduct = null;
+        });
+
+        document.getElementById('submit-payment-btn').addEventListener('click', async () => {
+            if (!currentUser || !selectedProduct) return;
+            const comprobante = document.getElementById('comprobante').value.trim();
+            if (!comprobante) {
+                alert('Por favor, ingresa el número de confirmación o el enlace.');
+                return;
+            }
+
+            try {
+                await db.transact([
+                    db.tx.payment_verifications[id()].update({
+                        user_id: currentUser.id,
+                        product_id: selectedProduct.id,
+                        comprobante: comprobante,
+                        status: 'pending',
+                        created_at: new Date()
+                    })
+                ]);
+                alert('¡Comprobante enviado! Te avisaremos cuando se verifique el pago.');
+                paymentFormArea.classList.add('hidden');
+                selectedProduct = null;
+                document.getElementById('comprobante').value = '';
+            } catch (error) {
+                console.error('Error al enviar comprobante:', error);
+                alert('Hubo un error. Inténtalo de nuevo.');
+            }
+        });
+
+        // 9. Panel de Administración (Verificación de Pagos)
+        async function loadPendingPayments() {
+            const { data } = await db.query({
+                payment_verifications: { $: { where: { status: 'pending' } } }
+            });
+            const verifications = data.payment_verifications;
+            if (!verifications || verifications.length === 0) {
+                document.getElementById('pending-payments-list').innerHTML = '<p>No hay pagos pendientes.</p>';
+                return;
+            }
+
+            let html = '<ul>';
+            for (const v of verifications) {
+                html += `<li style="margin-bottom: 15px; border-bottom: 1px solid #2c3a4e; padding-bottom: 10px;">
+                    <strong>Usuario:</strong> ${v.user_id}<br>
+                    <strong>Producto:</strong> ${v.product_id}<br>
+                    <strong>Comprobante:</strong> ${v.comprobante}<br>
+                    <strong>Fecha:</strong> ${new Date(v.created_at).toLocaleString()}<br>
+                    <button class="btn btn-sec" data-id="${v.id}" data-user="${v.user_id}" data-product="${v.product_id}" onclick="approvePayment('${v.id}', '${v.user_id}', '${v.product_id}')">✅ Aprobar</button>
+                    <button class="btn btn-sec" data-id="${v.id}" onclick="rejectPayment('${v.id}')">❌ Rechazar</button>
+                </li>`;
+            }
+            html += '</ul>';
+            document.getElementById('pending-payments-list').innerHTML = html;
+        }
+
+        // Funciones globales para los botones del panel de admin
+        window.approvePayment = async (verificationId, userId, productId) => {
+            try {
+                await db.transact([
+                    db.tx.payment_verifications[verificationId].update({ status: 'approved' }),
+                    db.tx.purchases[id()].update({
+                        user_id: userId,
+                        product_id: productId,
+                        purchased_at: new Date()
+                    })
+                ]);
+                alert('Pago aprobado. El usuario ya puede descargar su PAU.');
+                loadPendingPayments();
+            } catch (error) {
+                console.error('Error al aprobar pago:', error);
+                alert('Error al aprobar. Revisa la consola.');
+            }
+        };
+
+        window.rejectPayment = async (verificationId) => {
+            if (confirm('¿Rechazar este pago?')) {
+                await db.transact([
+                    db.tx.payment_verifications[verificationId].update({ status: 'rejected' })
+                ]);
+                loadPendingPayments();
+            }
+        };
+
+        // Inicializar carga de productos al cargar la página
+        window.addEventListener('load', () => {
+            if (currentUser) renderProducts();
+        });
+
+    </script>
+</body>
+</html>
